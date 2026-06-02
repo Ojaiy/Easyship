@@ -1,40 +1,123 @@
 const Tracking = require("../models/trackingSchema");
 
+// START TRACKING
 exports.startTracking = async (req, res) => {
   try {
     const { orderId, currentLocation } = req.body;
-    const tracking = new Tracking({ orderId, currentLocation, status: "picked up" });
+
+    // Validation
+    if (!orderId || !currentLocation) {
+      return res.status(400).json({
+        success: false,
+        message: "orderId and currentLocation are required",
+      });
+    }
+
+    // Prevent duplicate tracking
+    const existing = await Tracking.findOne({ orderId });
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: "Tracking already exists for this orderId",
+      });
+    }
+
+    const tracking = new Tracking({
+      orderId,
+      currentLocation,
+      status: "picked up",
+    });
+
     await tracking.save();
-    res.status(201).json({ message: "Tracking started", tracking });
+
+    return res.status(201).json({
+      success: true,
+      message: "Tracking started successfully",
+      data: tracking,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Failed to start tracking", details: error.message});
+    return res.status(500).json({
+      success: false,
+      message: "Failed to start tracking",
+      error: error.message,
+    });
   }
 };
 
+// UPDATE TRACKING
 exports.updateTracking = async (req, res) => {
   try {
     const { orderId, currentLocation, status } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        message: "orderId is required",
+      });
+    }
+
+    // Build dynamic update object
+    const updateData = {};
+    if (currentLocation) updateData.currentLocation = currentLocation;
+    if (status) updateData.status = status;
+
     const tracking = await Tracking.findOneAndUpdate(
       { orderId },
-      { currentLocation, status },
+      updateData,
       { new: true }
     );
 
-    if (!tracking) return res.status(404).json({ error: "Tracking record not found" });
+    if (!tracking) {
+      return res.status(404).json({
+        success: false,
+        message: "Tracking record not found",
+      });
+    }
 
-    res.json({ message: "Location updated", tracking });
+    return res.status(200).json({
+      success: true,
+      message: "Tracking updated successfully",
+      data: tracking,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update location" });
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update tracking",
+      error: error.message,
+    });
   }
 };
 
+// GET TRACKING
 exports.getTracking = async (req, res) => {
   try {
-    const tracking = await Tracking.findOne({ orderId: req.params.orderId });
-    if (!tracking) return res.status(404).json({ error: "Tracking not found" });
+    const { orderId } = req.params;
 
-    res.json(tracking);
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        message: "orderId is required",
+      });
+    }
+
+    const tracking = await Tracking.findOne({ orderId });
+
+    if (!tracking) {
+      return res.status(404).json({
+        success: false,
+        message: "Tracking not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: tracking,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error fetching tracking data" });
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching tracking data",
+      error: error.message,
+    });
   }
 };

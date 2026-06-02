@@ -61,7 +61,7 @@ app.post("/multiple", vendorUpload.array('images', 4), (req,res) =>{
   res.send('Files uploaded successfully')
 });
 
-mongoose.connect(process.env.MONGODB).then(()=>{
+mongoose.connect(process.env.MONGO_URL).then(()=>{
     console.log('Connected to easyship MongoDB database');
 }).catch(err=>{
     console.log('Failed to connect to MongoDB', err)
@@ -72,11 +72,10 @@ app.use("/api/v1", userRoutes);
 app.use("/api/v1", vendorRoutes);
 
 // app.use("/api/v1", uploadRoutes);
-
 app.get('/', (req, res) => {
     res.send('EASYSHIP NG');
 })
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
     console.log(`Server running on port ${process.env.PORT}`);
 })
