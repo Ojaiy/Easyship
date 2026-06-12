@@ -68,6 +68,9 @@ exports.userSignup = async (req, res) => {
         });
 
     } catch (error) {
+          console.log("🔥 FULL SIGNUP ERROR:");
+    console.log(error);
+    console.log(error.stack);
         return res.status(500).json({
             success: false,
             message: error.message

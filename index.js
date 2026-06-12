@@ -1,3 +1,6 @@
+const dns = require('dns');
+
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 const express = require('express');
 const mongoose = require('mongoose');
 const http = require('http');
@@ -61,11 +64,22 @@ app.post("/multiple", vendorUpload.array('images', 4), (req,res) =>{
   res.send('Files uploaded successfully')
 });
 
-mongoose.connect(process.env.MONGO_URL).then(()=>{
-    console.log('Connected to easyship MongoDB database');
-}).catch(err=>{
-    console.log('Failed to connect to MongoDB', err)
-})
+const startServer = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URL);
+
+    console.log("Connected to MongoDB");
+
+    server.listen(process.env.PORT, () => {
+      console.log(`Server running on port ${process.env.PORT}`);
+    });
+
+  } catch (err) {
+    console.log("MongoDB connection failed:", err.message);
+  }
+};
+
+startServer();
 
 app.use("/api/v1", trackRoutes);
 app.use("/api/v1", userRoutes);
@@ -74,8 +88,4 @@ app.use("/api/v1", vendorRoutes);
 // app.use("/api/v1", uploadRoutes);
 app.get('/', (req, res) => {
     res.send('EASYSHIP NG');
-})
-
-server.listen(process.env.PORT, () => {
-    console.log(`Server running on port ${process.env.PORT}`);
 })
