@@ -11,7 +11,7 @@ const multer = require('multer');
 const trackRoutes = require("./SRC/routes/trackRoutes.js");
 const Tracking = require("./SRC/models/trackingSchema.js");
 const userRoutes = require("./SRC/routes/userRoutes.js");
-const vendorRoutes = require("./SRC/routes/vendorRoutes.js");
+const orderRoutes = require("./SRC/routes/orderRoutes.js");
 
 const app = express();
 
@@ -87,7 +87,7 @@ app.post("/multiple", vendorUpload.array('images', 4), (req, res) => {
 ======================= */
 app.use("/api/v1", trackRoutes);
 app.use("/api/v1", userRoutes);
-app.use("/api/v1", vendorRoutes);
+app.use("/api/v1", orderRoutes);
 
 app.get('/', (req, res) => {
   res.send('EASYSHIP NG');
