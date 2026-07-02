@@ -216,6 +216,21 @@ exports.riderSignin = async (req, res) => {
             });
         }
 
+        // ✅ NEW: Block unapproved riders at login
+        if (rider.status !== 'approved') {
+            let message = 'Your account is pending approval. Please wait for admin confirmation.';
+            if (rider.status === 'rejected') {
+                message = 'Your account has been rejected. Contact support for more information.';
+            } else if (rider.status === 'suspended') {
+                message = 'Your account has been suspended. Contact support.';
+            }
+            return res.status(403).json({
+                success: false,
+                message: message,
+                status: rider.status
+            });
+        }
+
         // userId key matches what verifyRider expects (decoded.userId)
         const token = jwt.sign(
             {
