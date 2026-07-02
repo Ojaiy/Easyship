@@ -19,25 +19,34 @@ const riderRoutes      = require('./SRC/routes/riderRoutes');
 const app = express();
 
 /* =======================
-   1. CORS
+   1. CORS (FIXED)
 ======================= */
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : ['https://easyshipp.onrender.com'];
+    ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+    : ['https://easyship-brown.vercel.app'];
 
-app.use(cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-}));
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
 
-app.options('*', cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-}));
+    // allow server-to-server or Postman requests
+    if (!origin) return next();
+
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // handle preflight
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+
+    next();
+});
 
 /* =======================
    2. BODY PARSERS
@@ -62,8 +71,9 @@ app.get('/', (req, res) => {
 ======================= */
 const fileStorageEngine = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'vendorUploads/'),
-    filename:    (req, file, cb) => cb(null, Date.now() + '--' + file.originalname),
+    filename: (req, file, cb) => cb(null, Date.now() + '--' + file.originalname),
 });
+
 const vendorUpload = multer({ storage: fileStorageEngine });
 
 app.post('/multiple', vendorUpload.array('images', 4), (req, res) => {
@@ -76,26 +86,26 @@ app.post('/multiple', vendorUpload.array('images', 4), (req, res) => {
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: { origin: allowedOrigins, credentials: true },
+    cors: {
+        origin: allowedOrigins,
+        credentials: true
+    },
 });
 
-// Attach io to every request so controllers can emit events
+// Attach io to requests
 app.use((req, res, next) => {
     req.io = io;
     next();
 });
 
 io.on('connection', (socket) => {
-    (`Socket connected: ${sockconsole.loget.id}`);
+    console.log(`Socket connected: ${socket.id}`);
 
-    // Customer joins their own room using their userId
-    // so they receive live order updates
     socket.on('join_room', (userId) => {
         socket.join(userId);
         console.log(`User ${userId} joined room`);
     });
 
-    // Rider joins a rider room to receive new order notifications
     socket.on('join_rider_room', (riderId) => {
         socket.join(`rider_${riderId}`);
         console.log(`Rider ${riderId} joined rider room`);
@@ -106,7 +116,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Export io so it can be used in controllers directly if needed
 module.exports.io = io;
 
 /* =======================
@@ -128,7 +137,9 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
+    res.status(err.status || 500).json({
+        error: err.message || 'Internal Server Error'
+    });
 });
 
 /* =======================
@@ -138,9 +149,11 @@ const startServer = async () => {
     try {
         await mongoose.connect(process.env.MONGO_URL);
         console.log('Connected to MongoDB');
+
         server.listen(process.env.PORT || 5000, () => {
             console.log(`Server running on port ${process.env.PORT || 5000}`);
         });
+
     } catch (err) {
         console.error('MongoDB connection failed:', err.message);
         process.exit(1);
