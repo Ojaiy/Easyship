@@ -1,16 +1,15 @@
 const mongoose = require('mongoose');
-
 const orderSchema = new mongoose.Schema(
     {
         customerId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
+            ref: "User",
             required: true
         },
 
-        riderId: {
+        assignedRider: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Rider',
+            ref: "Rider",
             default: null
         },
 
@@ -43,7 +42,7 @@ const orderSchema = new mongoose.Schema(
         package: {
             type: {
                 type: String,
-                enum: ['document', 'small', 'medium', 'large', 'freight'],
+                enum: ["document", "small", "medium", "large", "freight"],
                 required: true
             },
             weight: {
@@ -55,7 +54,7 @@ const orderSchema = new mongoose.Schema(
 
         instructions: {
             type: String,
-            default: ''
+            default: ""
         },
 
         price: {
@@ -68,20 +67,100 @@ const orderSchema = new mongoose.Schema(
             default: 0
         },
 
-        status: {
+        paymentStatus: {
+            type: String,
+            enum: ["pending", "paid", "failed", "refunded"],
+            default: "pending"
+        },
+
+        orderStatus: {
             type: String,
             enum: [
-                'pending',
-                'dispatch_assigned',
-                'pickup_in_progress',
-                'in_transit',
-                'delivered',
-                'cancelled'
+                "pending_payment",
+                "waiting_for_rider",
+                "accepted",
+                "heading_to_pickup",
+                "picked_up",
+                "in_transit",
+                "delivered",
+                "completed",
+                "cancelled"
             ],
-            default: 'pending'
-        }
-    },
-    { timestamps: true }
-);
+            default: "pending_payment"
+        },
 
-module.exports = mongoose.model('Order', orderSchema);
+        acceptedAt: {
+            type: Date,
+            default: null
+        },
+
+        pickedUpAt: {
+            type: Date,
+            default: null
+        },
+
+        deliveredAt: {
+            type: Date,
+            default: null
+        },
+
+        confirmedAt: {
+            type: Date,
+            default: null
+        },
+
+        cancelledAt: {
+            type: Date,
+            default: null
+        },
+
+        cancelledBy: {
+            type: String,
+            enum: ["customer", "rider", "admin"],
+            default: null
+        },
+
+        cancellationReason: {
+            type: String,
+            default: ""
+        },
+
+        customerConfirmed: {
+            type: Boolean,
+            default: false
+        },
+
+        isArchived: {
+            type: Boolean,
+            default: false
+        },
+
+        timeline: [
+            {
+                status: {
+                    type: String,
+                    required: true
+                },
+
+                message: {
+                    type: String,
+                    required: true
+                },
+
+                updatedBy: {
+                    type: String,
+                    enum: ["customer", "rider", "admin", "system"],
+                    required: true
+                },
+
+                createdAt: {
+                    type: Date,
+                    default: Date.now
+                }
+            }
+        ]
+    },
+    {
+        timestamps: true
+    }
+);
