@@ -122,7 +122,7 @@ module.exports.io = io;
    7. API ROUTES
 ======================= */
 app.use('/api/v1', adminRoutes);
-app.use('/api/v1', trackRoutes);
+app.use('/api/v1/tracking', trackRoutes);
 app.use('/api/v1', userRoutes);
 app.use('/api/v1', orderRoutes);
 app.use('/api/v1', riderRoutes);

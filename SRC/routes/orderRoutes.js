@@ -34,21 +34,21 @@ router.get(
 );
 
 router.patch(
-    '/rider/orders/:orderId/accept',
+    '/rider/orders/accept',
     verifyRider,
     requireApprovedRider,
     orderController.acceptOrder
 );
 
 router.patch(
-    '/rider/orders/:orderId/pickup',
+    '/rider/orders/pickup',
     verifyRider,
     requireApprovedRider,
     orderController.markPickedUp
 );
 
 router.patch(
-    '/rider/orders/:orderId/deliver',
+    '/rider/orders/deliver',
     verifyRider,
     requireApprovedRider,
     orderController.markDelivered
