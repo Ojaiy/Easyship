@@ -42,14 +42,14 @@ const orderSchema = new mongoose.Schema(
         package: {
             type: {
                 type: String,
-                enum: ["document", "small", "medium", "large", "freight"],
+                enum: ["Document", "Small Package", "Medium Package", "Large Package", "Fragile Item", "Food/Perishable"],
                 required: true
             },
-            weight: {
-                type: Number,
-                required: true,
-                min: 0.1
-            }
+            // weight: {
+            //     type: Number,
+            //     required: true,
+            //     min: 0.1
+            // }
         },
 
         instructions: {
