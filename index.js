@@ -15,6 +15,7 @@ const trackRoutes      = require('./SRC/routes/trackRoutes.js');
 const userRoutes       = require('./SRC/routes/userRoutes.js');
 const orderRoutes      = require('./SRC/routes/orderRoutes.js');
 const riderRoutes      = require('./SRC/routes/riderRoutes');
+const paymentRoutes = require('./SRC/routes/paymentRoutes.js');
 
 const app = express();
 
@@ -51,7 +52,14 @@ app.use((req, res, next) => {
 /* =======================
    2. BODY PARSERS
 ======================= */
-app.use(express.json());
+// Preserve raw body for Paystack webhook signature verification
+app.use((req, res, next) => {
+    if (req.originalUrl === '/api/v1/payment/webhook') {
+        next();
+    } else {
+        express.json()(req, res, next);
+    }
+});
 app.use(express.urlencoded({ extended: true }));
 
 /* =======================
@@ -127,6 +135,7 @@ app.use('/api/v1', userRoutes);
 app.use('/api/v1', orderRoutes);
 app.use('/api/v1', riderRoutes);
 app.use('/api/v1', adminRiderRoutes);
+app.use('/api/v1', paymentRoutes);
 
 /* =======================
    8. 404 + ERROR HANDLERS

@@ -258,14 +258,10 @@ const getDashboardStats = async (req, res) => {
 // GET all available orders
 const getAvailableOrders = async (req, res) => {
     try {
-
         const orders = await Order.find({
-            orderStatus: "waiting_for_rider",
-            paymentStatus: "paid",
-            assignedRider: null,
-            isArchived: false
-        })
-        .sort({ createdAt: -1 });
+            orderStatus: 'waiting_for_rider',  // was 'pending'
+            paymentStatus: 'paid'              // only paid orders
+        }).sort({ createdAt: -1 });
 
         return res.status(200).json({
             success: true,
@@ -274,15 +270,12 @@ const getAvailableOrders = async (req, res) => {
         });
 
     } catch (error) {
-
         return res.status(500).json({
             success: false,
             message: error.message
         });
-
     }
 };
-
 // RIDER DASHBOARD
 const getRiderStats = async (req, res) => {
     try {
